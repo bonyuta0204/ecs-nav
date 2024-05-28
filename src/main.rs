@@ -41,7 +41,12 @@ async fn main() {
         }
     };
 
-    let selected_task = select_item("Select a task", &tasks);
+    // Skip selecting task if there is only one task available
+    let selected_task = if tasks.len() == 1 {
+        &tasks[0]
+    } else {
+        select_item("Select a task", &tasks)
+    };
     println!("You selected task: {}", selected_task);
 
     let containers = match list_containers(&client, selected_cluster, selected_task).await {
@@ -51,18 +56,16 @@ async fn main() {
             return;
         }
     };
-
     let selected_container = select_item("Select a container", &containers);
     println!("You selected container: {}", selected_container);
 
     match execute_command(
-        &client,
-        selected_cluster.name.as_str(),
-        selected_task.arn.as_str(),
-        selected_container.name.as_str(),
+        selected_cluster,
+        selected_task,
+        selected_container,
         "/bin/bash",
     ) {
-        Ok(_) => println!("Command executed successfully"),
+        Ok(_) => {}
         Err(e) => eprintln!("{}", e),
     }
 }

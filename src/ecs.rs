@@ -1,4 +1,4 @@
-use aws_sdk_ecs::{operation::execute_command::ExecuteCommandOutput, Client};
+use aws_sdk_ecs::Client;
 
 use std::fmt;
 
@@ -136,21 +136,20 @@ use std::io::Error;
 use std::process::Command;
 
 pub fn execute_command(
-    _client: &Client,
-    cluster: &str,
-    task: &str,
-    container: &str,
+    cluster: &Cluster,
+    task: &Task,
+    container: &Container,
     command: &str,
 ) -> Result<(), Error> {
     let mut child = Command::new("aws")
         .arg("ecs")
         .arg("execute-command")
         .arg("--cluster")
-        .arg(cluster)
+        .arg(cluster.name.as_str())
         .arg("--task")
-        .arg(task)
+        .arg(task.arn.as_str())
         .arg("--container")
-        .arg(container)
+        .arg(container.name.as_str())
         .arg("--command")
         .arg(command)
         .arg("--interactive")

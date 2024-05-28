@@ -29,7 +29,7 @@ async fn main() {
     let selected_cluster = &clusters[cluster_selection];
     println!("You selected cluster: {}", selected_cluster.name);
 
-    let services = match list_services(&client, selected_cluster.name.as_str()).await {
+    let services = match list_services(&client, selected_cluster).await {
         Ok(services) => services,
         Err(e) => {
             eprintln!("{}", e);
@@ -37,21 +37,17 @@ async fn main() {
         }
     };
 
-    let service_names: Vec<&str> = services
-        .iter()
-        .map(|s| s.split('/').last().unwrap())
-        .collect();
-    let service_selection = select_item("Select a service", &service_names);
+    let service_selection = select_item(
+        "Select a service",
+        &services
+            .iter()
+            .map(|service| service.name.as_str())
+            .collect::<Vec<&str>>(),
+    );
     let selected_service = &services[service_selection];
-    println!("You selected service: {}", selected_service);
+    println!("You selected service: {}", selected_service.name);
 
-    let tasks = match list_tasks(
-        &client,
-        selected_cluster.name.as_str(),
-        selected_service.as_str(),
-    )
-    .await
-    {
+    let tasks = match list_tasks(&client, selected_cluster, selected_service).await {
         Ok(tasks) => tasks,
         Err(e) => {
             eprintln!("{}", e);
@@ -59,17 +55,22 @@ async fn main() {
         }
     };
 
-    let task_arns: Vec<&str> = tasks.iter().map(|s| s.as_str()).collect();
-    let task_selection = select_item("Select a task", &task_arns);
+    let task_selection = select_item(
+        "Select a task",
+        &tasks
+            .iter()
+            .map(|task| task.arn.as_str())
+            .collect::<Vec<&str>>(),
+    );
     let selected_task = &tasks[task_selection];
-    println!("You selected task: {}", selected_task);
+    println!("You selected task: {}", selected_task.arn);
 
     let container_name = "your-container-name"; // Replace this with logic to fetch container name
 
     match execute_command(
         &client,
         selected_cluster.name.as_str(),
-        selected_task,
+        selected_task.arn.as_str(),
         container_name,
         "your-command-here",
     )

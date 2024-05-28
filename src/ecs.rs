@@ -6,6 +6,18 @@ pub struct Cluster {
     pub arn: String,
 }
 
+#[derive(Debug)]
+pub struct Service {
+    pub name: String,
+    pub arn: String,
+}
+
+#[derive(Debug)]
+pub struct Task {
+    pub name: String,
+    pub arn: String,
+}
+
 pub async fn list_clusters(client: &Client) -> Result<Vec<Cluster>, String> {
     client
         .list_clusters()
@@ -23,28 +35,44 @@ pub async fn list_clusters(client: &Client) -> Result<Vec<Cluster>, String> {
         .map_err(|e| format!("Failed to list clusters: {:#?}", e))
 }
 
-pub async fn list_services(client: &Client, cluster: &str) -> Result<Vec<String>, String> {
+pub async fn list_services(client: &Client, cluster: &Cluster) -> Result<Vec<Service>, String> {
     client
         .list_services()
-        .cluster(cluster)
+        .cluster(cluster.name.as_str())
         .send()
         .await
-        .map(|resp| resp.service_arns().to_vec())
+        .map(|resp| {
+            resp.service_arns()
+                .iter()
+                .map(|arn| Service {
+                    name: arn.split('/').last().unwrap_or("").to_string(),
+                    arn: arn.to_string(),
+                })
+                .collect()
+        })
         .map_err(|e| format!("Failed to list services: {}", e))
 }
 
 pub async fn list_tasks(
     client: &Client,
-    cluster: &str,
-    service: &str,
-) -> Result<Vec<String>, String> {
+    cluster: &Cluster,
+    service: &Service,
+) -> Result<Vec<Task>, String> {
     client
         .list_tasks()
-        .cluster(cluster)
-        .service_name(service)
+        .cluster(cluster.name.as_str())
+        .service_name(service.name.as_str())
         .send()
         .await
-        .map(|resp| resp.task_arns().to_vec())
+        .map(|resp| {
+            resp.task_arns()
+                .iter()
+                .map(|arn| Task {
+                    name: arn.split('/').last().unwrap_or("").to_string(),
+                    arn: arn.to_string(),
+                })
+                .collect()
+        })
         .map_err(|e| format!("Failed to list tasks: {}", e))
 }
 

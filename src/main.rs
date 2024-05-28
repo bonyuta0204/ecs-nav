@@ -61,9 +61,7 @@ async fn main() {
         selected_task.arn.as_str(),
         selected_container.name.as_str(),
         "/bin/bash",
-    )
-    .await
-    {
+    ) {
         Ok(_) => println!("Command executed successfully"),
         Err(e) => eprintln!("{}", e),
     }

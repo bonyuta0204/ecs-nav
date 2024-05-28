@@ -132,21 +132,29 @@ pub async fn list_containers(
         .map_err(|e| format!("Failed to list containers: {}", e))
 }
 
-pub async fn execute_command(
-    client: &Client,
+use std::io::Error;
+use std::process::Command;
+
+pub fn execute_command(
+    _client: &Client,
     cluster: &str,
     task: &str,
     container: &str,
     command: &str,
-) -> Result<ExecuteCommandOutput, String> {
-    client
-        .execute_command()
-        .cluster(cluster)
-        .task(task)
-        .container(container)
-        .command(command)
-        .interactive(true)
-        .send()
-        .await
-        .map_err(|e| format!("Failed to execute command: {}", e))
+) -> Result<(), Error> {
+    let mut child = Command::new("aws")
+        .arg("ecs")
+        .arg("execute-command")
+        .arg("--cluster")
+        .arg(cluster)
+        .arg("--task")
+        .arg(task)
+        .arg("--container")
+        .arg(container)
+        .arg("--command")
+        .arg(command)
+        .arg("--interactive")
+        .spawn()?;
+    child.wait().unwrap();
+    Ok(())
 }

@@ -12,7 +12,9 @@ ECS Navigator (ecs-nav) is a Rust-based CLI tool designed to simplify the use of
 
 ## Installation
 
-To install ecs-nav, you need to have Rust installed on your machine. If you don't have Rust installed, you can get it from [rust-lang.org](https://www.rust-lang.org/).
+### From Source
+
+To install ecs-nav from source, you need to have Rust installed on your machine. If you don't have Rust installed, you can get it from [rust-lang.org](https://www.rust-lang.org/).
 
 1. Clone the repository:
    ```sh
@@ -29,6 +31,22 @@ To install ecs-nav, you need to have Rust installed on your machine. If you don'
    ```sh
    ./target/release/ecs-nav
    ```
+
+### From Binary
+
+1. Download the binary from the [Release page](https://github.com/bonyuta0204/ecs-nav/releases).
+
+2. Put the binary file in a directory that is included in your `$PATH`.
+
+3. You can now start using `ecs-nav` by running:
+   ```sh
+   ecs-nav
+   ```
+
+## System Requirements
+
+- AWS CLI
+- AWS Session Manager installed
 
 ## Usage
 

@@ -20,7 +20,6 @@ async fn main() {
     };
 
     let selected_cluster = select_item("Select a cluster", &clusters);
-    println!("You selected cluster: {}", selected_cluster);
 
     let services = match list_services(&client, selected_cluster).await {
         Ok(services) => services,
@@ -31,7 +30,6 @@ async fn main() {
     };
 
     let selected_service = select_item("Select a service", &services);
-    println!("You selected service: {}", selected_service);
 
     let tasks = match list_tasks(&client, selected_cluster, selected_service).await {
         Ok(tasks) => tasks,
@@ -47,7 +45,6 @@ async fn main() {
     } else {
         select_item("Select a task", &tasks)
     };
-    println!("You selected task: {}", selected_task);
 
     let containers = match list_containers(&client, selected_cluster, selected_task).await {
         Ok(containers) => containers,
@@ -56,8 +53,8 @@ async fn main() {
             return;
         }
     };
+
     let selected_container = select_item("Select a container", &containers);
-    println!("You selected container: {}", selected_container);
 
     match execute_command(
         selected_cluster,

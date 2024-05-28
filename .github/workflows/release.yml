@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # This triggers the workflow on tags starting with 'v'
+
+jobs:
+  build-and-release:
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      matrix:
+        job:
+          - { target: x86_64-apple-darwin, os: macos-12 }
+          - { target: aarch64-apple-darwin, os: macos-14 }
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        target: ${{ matrix.job.target }}
+
+    - name: Cache cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          .cargo-cache
+          rust/target/
+        key: cargo-${{ matrix.job.target }}-${{ hashFiles('Cargo.lock') }}
+        restore-keys: cargo-${{ matrix.job.target }}
+
+    - name: Build
+      run: cargo build --release --target ${{ matrix.job.target }}
+
+    - name: Create taball
+      id: package
+      run: |
+        PKG_NAME=ecs-nav-${{ matrix.job.target }}
+        PKG_PATH="${PKG_NAME}.tar.gz"
+        echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_OUTPUT
+        echo "PKG_PATH=${PKG_PATH}" >> $GITHUB_OUTPUT
+
+        ARCHIVE_DIR="${PKG_NAME}/"
+        mkdir -p "${ARCHIVE_DIR}"
+        cp target/${{ matrix.job.target }}/release/ecs-nav "${ARCHIVE_DIR}"
+        tar czf "${PKG_PATH}" "${ARCHIVE_DIR}"
+
+    - name: Upload Release Asset
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.job.target }}
+        path: ${{ steps.package.outputs.PKG_PATH }}
+
+    - name: Publish archives and packages
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          ${{ steps.package.outputs.PKG_PATH }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

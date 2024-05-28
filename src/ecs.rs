@@ -1,11 +1,25 @@
 use aws_sdk_ecs::{operation::execute_command::ExecuteCommandOutput, Client};
 
-pub async fn list_clusters(client: &Client) -> Result<Vec<String>, String> {
+#[derive(Debug)]
+pub struct Cluster {
+    pub name: String,
+    pub arn: String,
+}
+
+pub async fn list_clusters(client: &Client) -> Result<Vec<Cluster>, String> {
     client
         .list_clusters()
         .send()
         .await
-        .map(|resp| resp.cluster_arns().to_vec())
+        .map(|resp| {
+            resp.cluster_arns()
+                .iter()
+                .map(|arn| Cluster {
+                    name: arn.split('/').last().unwrap_or("").to_string(),
+                    arn: arn.to_string(),
+                })
+                .collect()
+        })
         .map_err(|e| format!("Failed to list clusters: {:#?}", e))
 }
 

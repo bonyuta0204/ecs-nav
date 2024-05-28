@@ -19,14 +19,7 @@ async fn main() {
         }
     };
 
-    let cluster_selection = select_item(
-        "Select a cluster",
-        &clusters
-            .iter()
-            .map(|c| c.name.as_str())
-            .collect::<Vec<&str>>(),
-    );
-    let selected_cluster = &clusters[cluster_selection];
+    let selected_cluster = select_item("Select a cluster", &clusters);
     println!("You selected cluster: {}", selected_cluster.name);
 
     let services = match list_services(&client, selected_cluster).await {
@@ -37,14 +30,7 @@ async fn main() {
         }
     };
 
-    let service_selection = select_item(
-        "Select a service",
-        &services
-            .iter()
-            .map(|service| service.name.as_str())
-            .collect::<Vec<&str>>(),
-    );
-    let selected_service = &services[service_selection];
+    let selected_service = select_item("Select a service", &services);
     println!("You selected service: {}", selected_service.name);
 
     let tasks = match list_tasks(&client, selected_cluster, selected_service).await {
@@ -55,14 +41,7 @@ async fn main() {
         }
     };
 
-    let task_selection = select_item(
-        "Select a task",
-        &tasks
-            .iter()
-            .map(|task| task.arn.as_str())
-            .collect::<Vec<&str>>(),
-    );
-    let selected_task = &tasks[task_selection];
+    let selected_task = select_item("Select a task", &tasks);
     println!("You selected task: {}", selected_task.arn);
 
     let container_name = "your-container-name"; // Replace this with logic to fetch container name

@@ -1,9 +1,17 @@
 use aws_sdk_ecs::{operation::execute_command::ExecuteCommandOutput, Client};
 
+use std::fmt;
+
 #[derive(Debug)]
 pub struct Cluster {
     pub name: String,
     pub arn: String,
+}
+
+impl fmt::Display for Cluster {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
 #[derive(Debug)]
@@ -12,10 +20,22 @@ pub struct Service {
     pub arn: String,
 }
 
+impl fmt::Display for Service {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 #[derive(Debug)]
 pub struct Task {
     pub name: String,
     pub arn: String,
+}
+
+impl fmt::Display for Task {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
 pub async fn list_clusters(client: &Client) -> Result<Vec<Cluster>, String> {

@@ -38,6 +38,18 @@ impl fmt::Display for Task {
     }
 }
 
+#[derive(Debug)]
+pub struct Container {
+    pub name: String,
+    pub arn: String,
+}
+
+impl fmt::Display for Container {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 pub async fn list_clusters(client: &Client) -> Result<Vec<Cluster>, String> {
     client
         .list_clusters()
@@ -94,6 +106,30 @@ pub async fn list_tasks(
                 .collect()
         })
         .map_err(|e| format!("Failed to list tasks: {}", e))
+}
+
+pub async fn list_containers(
+    client: &Client,
+    cluster: &Cluster,
+    task: &Task,
+) -> Result<Vec<Container>, String> {
+    client
+        .describe_tasks()
+        .cluster(cluster.name.as_str())
+        .tasks(task.arn.as_str())
+        .send()
+        .await
+        .map(|resp| {
+            resp.tasks()
+                .iter()
+                .flat_map(|task| task.containers().iter())
+                .map(|container| Container {
+                    name: container.name().unwrap_or("").to_string(),
+                    arn: container.container_arn().unwrap_or("").to_string(),
+                })
+                .collect()
+        })
+        .map_err(|e| format!("Failed to list containers: {}", e))
 }
 
 pub async fn execute_command(

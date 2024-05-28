@@ -12,6 +12,15 @@ ECS Navigator (ecs-nav) is a Rust-based CLI tool designed to simplify the use of
 
 ## Installation
 
+### Using `cargo install` from GitHub
+
+To install ecs-nav using `cargo install` from GitHub, you need to have Rust installed on your machine. If you don't have Rust installed, you can get it from [rust-lang.org](https://www.rust-lang.org/).
+
+1. Install ecs-nav:
+   ```sh
+   cargo install --git https://github.com/bonyuta0204/ecs-nav.git
+   ```
+
 ### From Source
 
 To install ecs-nav from source, you need to have Rust installed on your machine. If you don't have Rust installed, you can get it from [rust-lang.org](https://www.rust-lang.org/).

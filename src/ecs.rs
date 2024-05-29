@@ -1,11 +1,31 @@
+use aws_sdk_ecs::error::{ProvideErrorMetadata, SdkError};
 use aws_sdk_ecs::Client;
 
 use std::fmt;
+
+trait FromArn {
+    fn new(arn: &str, name: &str) -> Self;
+    fn from_arn(arn: &str) -> Self
+    where
+        Self: Sized,
+    {
+        Self::new(arn, arn.split('/').last().unwrap_or_default())
+    }
+}
 
 #[derive(Debug)]
 pub struct Cluster {
     pub name: String,
     pub arn: String,
+}
+
+impl FromArn for Cluster {
+    fn new(arn: &str, name: &str) -> Self {
+        Cluster {
+            arn: arn.to_string(),
+            name: name.to_string(),
+        }
+    }
 }
 
 impl fmt::Display for Cluster {
@@ -20,6 +40,15 @@ pub struct Service {
     pub arn: String,
 }
 
+impl FromArn for Service {
+    fn new(arn: &str, name: &str) -> Self {
+        Service {
+            arn: arn.to_string(),
+            name: name.to_string(),
+        }
+    }
+}
+
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name)
@@ -30,6 +59,15 @@ impl fmt::Display for Service {
 pub struct Task {
     pub name: String,
     pub arn: String,
+}
+
+impl FromArn for Task {
+    fn new(arn: &str, name: &str) -> Self {
+        Task {
+            arn: arn.to_string(),
+            name: name.to_string(),
+        }
+    }
 }
 
 impl fmt::Display for Task {
@@ -58,13 +96,21 @@ pub async fn list_clusters(client: &Client) -> Result<Vec<Cluster>, String> {
         .map(|resp| {
             resp.cluster_arns()
                 .iter()
-                .map(|arn| Cluster {
-                    name: arn.split('/').last().unwrap_or("").to_string(),
-                    arn: arn.to_string(),
-                })
+                .map(|arn| Cluster::from_arn(arn))
                 .collect()
         })
-        .map_err(|e| format!("Failed to list clusters: {:#?}", e))
+        .map_err(|e| format!("Failed to list clusters: {}", error_message(e)))
+}
+
+fn error_message<E, R>(e: SdkError<E, R>) -> String
+where
+    E: fmt::Display + ProvideErrorMetadata,
+    R: fmt::Debug,
+{
+    match e {
+        SdkError::ServiceError(e) => e.err().message().unwrap_or("").to_string(),
+        _ => format!("{}", e),
+    }
 }
 
 pub async fn list_services(client: &Client, cluster: &Cluster) -> Result<Vec<Service>, String> {
@@ -76,13 +122,10 @@ pub async fn list_services(client: &Client, cluster: &Cluster) -> Result<Vec<Ser
         .map(|resp| {
             resp.service_arns()
                 .iter()
-                .map(|arn| Service {
-                    name: arn.split('/').last().unwrap_or("").to_string(),
-                    arn: arn.to_string(),
-                })
+                .map(|arn| Service::from_arn(arn))
                 .collect()
         })
-        .map_err(|e| format!("Failed to list services: {}", e))
+        .map_err(|e| format!("Failed to list services: {}", error_message(e)))
 }
 
 pub async fn list_tasks(
@@ -99,13 +142,10 @@ pub async fn list_tasks(
         .map(|resp| {
             resp.task_arns()
                 .iter()
-                .map(|arn| Task {
-                    name: arn.split('/').last().unwrap_or("").to_string(),
-                    arn: arn.to_string(),
-                })
+                .map(|arn| Task::from_arn(arn))
                 .collect()
         })
-        .map_err(|e| format!("Failed to list tasks: {}", e))
+        .map_err(|e| format!("Failed to list tasks: {}", error_message(e)))
 }
 
 pub async fn list_containers(
@@ -129,7 +169,7 @@ pub async fn list_containers(
                 })
                 .collect()
         })
-        .map_err(|e| format!("Failed to list containers: {}", e))
+        .map_err(|e| format!("Failed to list containers: {}", error_message(e)))
 }
 
 use std::io::Error;

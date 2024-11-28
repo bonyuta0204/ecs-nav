@@ -114,18 +114,23 @@ where
 }
 
 pub async fn list_services(client: &Client, cluster: &Cluster) -> Result<Vec<Service>, String> {
-    client
+    let mut services = Vec::new();
+    let paginator = client
         .list_services()
         .cluster(cluster.name.as_str())
-        .send()
+        .into_paginator()
+        .send();
+
+    let service_arns = paginator
+        .try_collect()
         .await
-        .map(|resp| {
-            resp.service_arns()
-                .iter()
-                .map(|arn| Service::from_arn(arn))
-                .collect()
-        })
-        .map_err(|e| format!("Failed to list services: {}", error_message(e)))
+        .map_err(|e| format!("Failed to list services: {}", error_message(e)))?;
+
+    for page in service_arns {
+        services.extend(page.service_arns().iter().map(|arn| Service::from_arn(arn)));
+    }
+
+    Ok(services)
 }
 
 pub async fn list_tasks(

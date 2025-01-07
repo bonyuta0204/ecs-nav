@@ -1,6 +1,6 @@
 [package]
 name = "ecs-nav"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,4 +11,5 @@ aws-config = { version= "1.5.0", features = ["behavior-version-latest"] }
 aws-sdk-dynamodb = "1.30.1"
 aws-sdk-ecs = "1.28.0"
 dialoguer = "0.11.0"
+nix = {version = "0.29.0", features = ["process"]}
 tokio = { version = "1", features = ["full"] }

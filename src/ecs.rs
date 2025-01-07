@@ -1,6 +1,8 @@
 use aws_sdk_ecs::error::{ProvideErrorMetadata, SdkError};
 use aws_sdk_ecs::Client;
+use nix::unistd::execvp;
 
+use std::ffi::CString;
 use std::fmt;
 
 trait FromArn {
@@ -178,7 +180,6 @@ pub async fn list_containers(
 }
 
 use std::io::Error;
-use std::process::Command;
 
 pub fn execute_command(
     cluster: &Cluster,
@@ -186,19 +187,27 @@ pub fn execute_command(
     container: &Container,
     command: &str,
 ) -> Result<(), Error> {
-    let mut child = Command::new("aws")
-        .arg("ecs")
-        .arg("execute-command")
-        .arg("--cluster")
-        .arg(cluster.name.as_str())
-        .arg("--task")
-        .arg(task.arn.as_str())
-        .arg("--container")
-        .arg(container.name.as_str())
-        .arg("--command")
-        .arg(command)
-        .arg("--interactive")
-        .spawn()?;
-    child.wait().unwrap();
-    Ok(())
+    let program = CString::new("aws").unwrap();
+    let args = vec![
+        program.clone(), // Include the program name as the first argument
+        CString::new("ecs").unwrap(),
+        CString::new("execute-command").unwrap(),
+        CString::new("--cluster").unwrap(),
+        CString::new(cluster.name.as_str()).unwrap(),
+        CString::new("--task").unwrap(),
+        CString::new(task.arn.as_str()).unwrap(),
+        CString::new("--container").unwrap(),
+        CString::new(container.name.as_str()).unwrap(),
+        CString::new("--command").unwrap(),
+        CString::new(command).unwrap(),
+        CString::new("--interactive").unwrap(),
+    ];
+
+    // Convert Vec<CString> to &[CString] and pass to execvp
+    let c_args: Vec<&CString> = args.iter().collect();
+
+    match execvp(&program, &c_args) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(Error::new(std::io::ErrorKind::Other, e.to_string())),
+    }
 }

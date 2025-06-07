@@ -68,6 +68,17 @@ To install ecs-nav from source, you need to have Rust installed on your machine.
 
 3. Execute the desired command in the container.
 
+### Command Line Options
+
+- `--shell` or `-s`: Specify the shell to use for connecting to containers (default: `/bin/bash`)
+  
+  Example for Alpine containers:
+  ```sh
+  ecs-nav --shell /bin/sh
+  ```
+
+Note: For containers without bash (like Alpine Linux), use the `--shell /bin/sh` option.
+
 ## Configuration
 
 Ensure you have AWS credentials configured on your machine. You can set them up using the AWS CLI:

@@ -4,11 +4,21 @@ mod ecs;
 
 use aws_client::create_client;
 use cli::select_item;
+use clap::Parser;
 use ecs::{execute_command, list_clusters, list_containers, list_services, list_tasks};
 use tokio;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Shell to use for connecting to the container
+    #[arg(short, long, default_value = "/bin/bash")]
+    shell: String,
+}
+
 #[tokio::main]
 async fn main() {
+    let args = Args::parse();
     let client = create_client().await;
 
     let clusters = match list_clusters(&client).await {
@@ -56,13 +66,15 @@ async fn main() {
 
     let selected_container = select_item("Select a container", &containers);
 
+    // Execute the command with the specified shell
+    println!("Connecting to container with shell: {}", args.shell);
     match execute_command(
         selected_cluster,
         selected_task,
         selected_container,
-        "/bin/bash",
+        &args.shell,
     ) {
         Ok(_) => {}
-        Err(e) => eprintln!("{}", e),
+        Err(e) => eprintln!("Failed to execute: {}", e),
     }
 }

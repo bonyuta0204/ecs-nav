@@ -14,3 +14,17 @@ clap = { version = "4.5", features = ["derive"] }
 dialoguer = "0.11.0"
 nix = {version = "0.29.0", features = ["process"]}
 tokio = { version = "1", features = ["full"] }
+
+[package.metadata.release]
+sign-commit = false
+sign-tag = false
+push-remote = "origin"
+release = true
+publish = false
+pre-release-commit-message = "chore: release {{version}}"
+tag-message = "{{version}}"
+tag-name = "v{{version}}"
+pre-release-replacements = [
+  {file="CHANGELOG.md", search="## \\[Unreleased\\]", replace="## [Unreleased]\n\n## [{{version}}] - {{date}}", exactly=1},
+  {file="CHANGELOG.md", search="\\[Unreleased\\]: https://github\\.com/bonyuta0204/ecs-nav/compare/v(.+)\\.\\.\\.HEAD", replace="[Unreleased]: https://github.com/bonyuta0204/ecs-nav/compare/v{{version}}...HEAD\n[{{version}}]: https://github.com/bonyuta0204/ecs-nav/compare/v$1...v{{version}}"},
+]

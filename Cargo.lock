@@ -626,7 +626,7 @@ dependencies = [
 
 [[package]]
 name = "ecs-nav"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "aws-config",
  "aws-sdk-dynamodb",

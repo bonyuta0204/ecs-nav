@@ -97,3 +97,55 @@ aws configure
 ## Contributing
 
 Contributions are welcome! Please fork the repository and submit pull requests.
+
+## Releasing
+
+This project uses [cargo-release](https://github.com/crate-ci/cargo-release) for version management and releases.
+
+### Prerequisites
+
+1. Install cargo-release:
+   ```sh
+   cargo install cargo-release
+   ```
+
+2. Ensure you have push access to the repository and GitHub releases.
+
+### Release Process
+
+1. Update the CHANGELOG.md with your changes under the `[Unreleased]` section.
+
+2. Run a dry-run to see what will happen:
+   ```sh
+   cargo release patch --dry-run  # for patch version (0.0.4 -> 0.0.5)
+   cargo release minor --dry-run  # for minor version (0.0.4 -> 0.1.0)
+   cargo release major --dry-run  # for major version (0.0.4 -> 1.0.0)
+   ```
+
+3. Execute the release:
+   ```sh
+   cargo release patch --execute
+   ```
+
+   This will automatically:
+   - Update the version in `Cargo.toml`
+   - Update `CHANGELOG.md` with the new version and date
+   - Create a git commit with message "chore: release X.Y.Z"
+   - Create a git tag "vX.Y.Z"
+   - Push the commit and tag to GitHub
+   - Trigger the GitHub Actions workflow to build and publish binaries
+
+4. The GitHub Actions workflow will automatically:
+   - Build binaries for macOS (Intel and Apple Silicon)
+   - Create a GitHub release with the binaries attached
+
+### Manual Release (Alternative)
+
+If you prefer to release manually:
+
+1. Update version in `Cargo.toml`
+2. Update `Cargo.lock`: `cargo update -p ecs-nav`
+3. Update CHANGELOG.md
+4. Commit: `git commit -am "chore: release 0.0.5"`
+5. Tag: `git tag v0.0.5`
+6. Push: `git push && git push --tags`
